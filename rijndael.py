@@ -1,16 +1,17 @@
 def galois_mul(a:int, b:int) -> int:
+    a &= 255
+    b &= 255
     product = 0
     while a and b:
-        print(f'{a=}, {bin(a)}')
-        print(f'{b=}, {bin(b)}')
+        # print(f'{a=}, {bin(a)}')
+        # print(f'{b=}, {bin(b)}')
         if b & 1:
             product ^= a # Polynomial addition
         b >>= 1 # Discard 0th term
         carry = a & 128
-        a <<= 1 # Multiply polynomial by x
+        a = (a << 1) & 255 # Multiply polynomial by x, bitwise AND by 11111111 masking to 8 bits
         if carry:
-            print('executed')
-            a ^= 0x11b # Irreducible polynomial constant
+            a ^= 0x1b # Irreducible polynomial constant
     return product
 
 def find_g_inverse(a):
@@ -20,8 +21,8 @@ def find_g_inverse(a):
 
 if __name__ == "__main__":
 
-    print(galois_mul(0xf3, 0xba))
-
+    print(galois_mul(0x53, 0xCA))
+    
     '''
     checked = set()
     inverses = {1: 1}
