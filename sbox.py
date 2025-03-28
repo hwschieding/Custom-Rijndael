@@ -35,10 +35,17 @@ def compute_inverse_table() -> list:
             table[i] = find_galois_inverse(inv_affine)
     return table
 
-# Objectively awful use of classes, should probably think of a better way to utilize them
 class SBox:
     def __init__(self, inverse: bool=False):
         self.table = compute_inverse_table() if inverse else compute_forward_table()
 
     def __getitem__(self, index):
         return self.table[index]
+
+    def __str__(self):
+        out = ''
+        for i in range(256):
+            if i % 16 == 0:
+                out += '\n'
+            out += f'{hex(self.table[i]):4} '
+        return out
