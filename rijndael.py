@@ -13,7 +13,9 @@ def byte_matrix16(str16: str) -> list[bytearray]:
 # Converts str into list of matrices that can be operated on by AES
 def str_to_byte_matrices(text: str) -> list:
     remain = len(text) % 16
-    sized_text = text + ('\x00' * remain) # size text to multiple of 16 bytes
+    sized_text = text
+    if remain > 0:
+        sized_text += ('\x00' * (16 - remain)) # size text to multiple of 16 bytes
 
     mxs = []
     for chunk16_idx in range(0, len(sized_text), 16): # convert 16 byte chunks to byte matrices
@@ -27,4 +29,5 @@ class Rijndael:
         self.plaintext_bytes = str_to_byte_matrices(plaintext)
 
 if __name__ == '__main__':
-    print(str_to_byte_matrices('sixteen chars :)'))
+    txt = 'not sixteen chars :)'
+    print(str_to_byte_matrices(txt))
