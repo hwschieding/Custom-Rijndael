@@ -1,33 +1,21 @@
-# Main Rijndael Class
+from galois_math import galois_mul
+from byte_matrix import ByteMatrix16
 
-from galois_math import galois_mul, find_galois_inverse
-from sbox import SBox
-
-#Generates a 4x4 byte matrix from a 16 byte string using a list of bytearrays. May become its own class.
-def byte_matrix16(str16: str) -> list[bytearray]:
-    mx = []
-    for idx in range(0, 16, 4):
-        mx.append(bytearray(str16[idx: idx + 4], 'utf-8'))
-    return mx
-
-# Converts str into list of matrices that can be operated on by AES
+# Converts str into list of 4x4 byte matrices that can be operated on by AES
 def str_to_byte_matrices(text: str) -> list:
-    remain = len(text) % 16
-    sized_text = text
-    if remain > 0:
-        sized_text += ('\x00' * (16 - remain)) # size text to multiple of 16 bytes
-
     mxs = []
-    for chunk16_idx in range(0, len(sized_text), 16): # convert 16 byte chunks to byte matrices
-        text_chunk16 = sized_text[chunk16_idx : chunk16_idx + 16]
-        mxs.append(byte_matrix16(text_chunk16))
+    for chunk16_idx in range(0, len(text), 16): # Split plaintext to 16 byte blocks
+        # Final block may be <16 bytes, remainder will be sized with null bytes on instantiation
+        mx = ByteMatrix16(text[chunk16_idx : chunk16_idx + 16])
+        mxs.append(mx)
     return mxs
 
+# Main Rijndael class
 class Rijndael:
-
     def __init__(self, plaintext: str):
+        # TODO: Ensure plaintext encodes to 1 byte per character in utf-8
         self.plaintext_bytes = str_to_byte_matrices(plaintext)
 
 if __name__ == '__main__':
-    txt = 'not sixteen chars :)'
+    txt = 'sixteen chars :)'
     print(str_to_byte_matrices(txt))
