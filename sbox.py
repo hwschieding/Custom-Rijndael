@@ -14,7 +14,7 @@ def affine_transform(a: int) -> int:
 def inverse_affine_transform(s: int) -> int:
     return l_rot8(s, 1) ^ l_rot8(s, 3) ^ l_rot8(s, 6) ^ 0x5
 
-def compute_forward_table() -> list:
+def compute_forward_sbox() -> list:
     checked = set()
     table = [0] * 256
     table[0] = 0x63 # Special case for 0 because it has no inverse
@@ -26,7 +26,7 @@ def compute_forward_table() -> list:
             checked.add(inverse)
     return table
 
-def compute_inverse_table() -> list:
+def compute_inverse_sbox() -> list:
     table = [0] * 256
     table[0x63] = 0 # Special case for 0, reversed
     for i in range(0, 256):
@@ -34,18 +34,3 @@ def compute_inverse_table() -> list:
             inv_affine = inverse_affine_transform(i)
             table[i] = find_galois_inverse(inv_affine)
     return table
-
-class SBox:
-    def __init__(self, inverse: bool=False):
-        self.table = compute_inverse_table() if inverse else compute_forward_table()
-
-    def __getitem__(self, index):
-        return self.table[index]
-
-    def __str__(self):
-        out = ''
-        for i in range(256):
-            if i % 16 == 0:
-                out += '\n'
-            out += f'{hex(self.table[i]):4} '
-        return out

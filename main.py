@@ -1,13 +1,8 @@
-from sbox import SBox
+from sbox import compute_forward_sbox, compute_inverse_sbox
 
 if __name__ == "__main__":
     # Temp code for testing S-Box
-    s = SBox()
-    i_s = SBox(inverse=True)
+    s = compute_forward_sbox()
+    i_s = compute_inverse_sbox()
     print(s)
     print(i_s)
-    #for i in range(0, 256, 16):
-    #    print([f'{hex(n):4}' for n in s[i:i+16]])
-    #print()
-    #for i in range(0, 256, 16):
-    #    print([f'{hex(n):4}' for n in i_s[i:i+16]])
