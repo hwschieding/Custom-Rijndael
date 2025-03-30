@@ -21,4 +21,4 @@ def find_galois_inverse(a: int) -> int: # Brute force method, checks every eleme
         if galois_mul(a, i) == 1:
             return i
     # If there is no return, a is either 0 or outside GF(2^8).
-    # FIXME: Handle exception above
+    raise ValueError(f"{find_galois_inverse.__name__}: '{a}' out of range (1 - 255)")
