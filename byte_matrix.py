@@ -4,19 +4,18 @@ Stored internally as a simple 16 element bytearray for memory efficiency, with m
 getting and setting rows/columns/elements.
 """
 class ByteMatrix16:
-    def _size_text(self, remain: int) -> str:
-        return self.text + ('\x00' * remain)
+    def _size_text(self, remain: int):
+        self.data.extend(('\x00' * remain).encode('utf-8'))
 
-    def __init__(self, text: str):
-        self.text = text
+    def __init__(self, text_bytes: bytearray):
+        self.data = text_bytes
         # Ensure text is 16 bytes
-        text_len = len(self.text)
-        if text_len > 16:
-            raise ValueError(f'{type(self).__name__}: Input string must be 16 bytes or less')
-        elif text_len < 16:
-            self.text = self._size_text(16 - text_len)
+        bytes_len = len(self.data)
+        if bytes_len > 16:
+            raise ValueError(f'{type(self).__name__}: Input must be 16 bytes or less')
+        elif bytes_len < 16:
+            self._size_text(16 - bytes_len)
 
-        self.data = bytearray(self.text, 'utf-8')
 
     def __repr__(self):
         out = f'{type(self)}, {self.data=}\n'
