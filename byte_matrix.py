@@ -2,10 +2,20 @@
 Datatype for a 4x4 matrix of bytes in order to more easily perform matrix operations on bytes.
 Stored internally as a simple 16 element bytearray for memory efficiency, with methods to handle
 getting and setting rows/columns/elements.
+
+AES converts the plaintext input into **COLUMN-MAJOR ORDER** matrices, in other words:
+'0123456789abcdef' ->
+    0 4 8 c
+    1 5 9 d
+    2 6 a e
+    3 7 b f
+
+This does have an effect on how some AES functions operate in Python, so set/get functions
+have to be "backwards" to accommodate this behavior.
 """
 class ByteMatrix16:
-    def _size_text(self, remain: int):
-        self.data.extend(('\x00' * remain).encode('utf-8'))
+
+    _debug_show_chars = False
 
     def __init__(self, text_bytes: bytearray):
         self.data = text_bytes
@@ -16,35 +26,48 @@ class ByteMatrix16:
         elif bytes_len < 16:
             self._size_text(16 - bytes_len)
 
+    def __getitem__(self, item) -> bytearray:
+        return self.get_row(item)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         out = f'{type(self)}, {self.data=}\n'
-        for i in range(0, 16, 4):
-            row = ' '.join([f'{n:02x}' for n in self.data[i : i + 4]])
+        for i in range(4):
+            row = ' '.join([chr(n) if self._debug_show_chars else f'{n:02x}' for n in self.get_row(i)])
             out += row + '\n'
         return out
 
     def get_row(self, idx: int) -> bytearray:
-        row_idx = idx * 4
-        return self.data[row_idx : row_idx + 4]
-
-    def get_column(self, idx: int) -> bytearray:
         return bytearray((self.data[idx],
                           self.data[idx + 4],
                           self.data[idx + 8],
                           self.data[idx + 12]))
 
-    def __getitem__(self, item) -> bytearray:
-        return self.get_row(item)
+    def get_column(self, idx: int) -> bytearray:
+        row_idx = idx * 4
+        return self.data[row_idx : row_idx + 4]
 
-    def set_row(self, idx: int, new_row: bytearray | str):
+    def set_row(self, idx: int, new_row: bytearray | str) -> None:
         if isinstance(new_row, str):
             new_row = bytearray(new_row, 'utf-8')
-        row_idx = idx * 4
-        self.data[row_idx : row_idx + 4] = new_row
+        for i in range(4):
+            self.data[idx + (i * 4)] = new_row[i]
 
-    def set_column(self, idx: int, new_col: bytearray | str):
+    def set_column(self, idx: int, new_col: bytearray | str) -> None:
         if isinstance(new_col, str):
             new_col = bytearray(new_col, 'utf-8')
+        row_idx = idx * 4
+        self.data[row_idx : row_idx + 4] = new_col
+
+    def _size_text(self, remain: int):
+        self.data.extend(('\x00' * remain).encode('utf-8'))
+
+    # Rearrange bytearray to be column-major order (reflect over y=-x)
+    def _create_cmo_table(self) -> bytearray:
+        table = bytearray(16)
         for i in range(4):
-            self.data[idx + (i * 4)] = new_col[i]
+            row = i * 4
+            table[i] = self.data[row]
+            table[i + 4] = self.data[row + 1]
+            table[i + 8] = self.data[row + 2]
+            table[i + 12] = self.data[row + 3]
+        return table
