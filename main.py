@@ -2,10 +2,10 @@
 # Hunter Schieding 3/31/25
 # Independent Study Spring 2025
 
-from sbox import compute_forward_sbox, compute_inverse_sbox
-from galois_math import *
-from byte_matrix import ByteMatrix16
-from rijndael import Rijndael
+from src.sbox import compute_forward_sbox, compute_inverse_sbox
+from src.galois_math import *
+from src.byte_matrix import ByteMatrix16
+from src.rijndael import Rijndael
 
 if __name__ == "__main__":
     print(f'{'*' * 67}\nAES Implementation - Week 1 | Showcase of working functions/classes\n{'*' * 67}\n')
