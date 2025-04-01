@@ -10,8 +10,8 @@ AES converts the plaintext input into **COLUMN-MAJOR ORDER** matrices, in other 
     2 6 a e
     3 7 b f
 
-This does have an effect on how some AES functions operate in Python, so set/get functions
-have to be "backwards" to accommodate this behavior.
+This does have an effect on how some AES functions operate in Python, so row/column based
+functions have to be "backwards" to accommodate this behavior.
 """
 class ByteMatrix16:
 
@@ -60,14 +60,3 @@ class ByteMatrix16:
 
     def _size_text(self, remain: int):
         self.data.extend(('\x00' * remain).encode('utf-8'))
-
-    # Rearrange bytearray to be column-major order (reflect over y=-x)
-    def _create_cmo_table(self) -> bytearray:
-        table = bytearray(16)
-        for i in range(4):
-            row = i * 4
-            table[i] = self.data[row]
-            table[i + 4] = self.data[row + 1]
-            table[i + 8] = self.data[row + 2]
-            table[i + 12] = self.data[row + 3]
-        return table
