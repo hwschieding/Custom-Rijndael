@@ -2,7 +2,7 @@
 
 # TODO: Add option to use precomputed S-Box from file instead of generating one
 
-from galois_math import find_galois_inverse
+from src.galois_math import find_galois_inverse
 
 def l_rot8(a, bits) -> int:  # Circular shift left for bytes
     return ((a << bits) | (a >> (8 - bits))) & 0xFF

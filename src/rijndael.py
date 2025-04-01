@@ -1,5 +1,5 @@
 from galois_math import galois_mul
-from byte_matrix import ByteMatrix16
+from src.byte_matrix import ByteMatrix16
 
 # Converts str into list of 4x4 byte matrices that can be operated on by AES
 def str_to_byte_matrices(text: str) -> list:
