@@ -40,13 +40,13 @@ class KeySchedule:
     }
     _SBOX: list = None
 
-    def __init__(self, key: str, sbox=None):
+    def __init__(self, key: str | bytearray, sbox=None):
 
         self._SBOX = compute_forward_sbox() if sbox is None else sbox
 
         self.key_str = key
+        key_bytes = bytearray(self.key_str, 'utf-8') if isinstance(key, str) else key
 
-        key_bytes = bytearray(self.key_str, 'utf-8')
         self.key_size = len(key_bytes)
         if self.key_size not in _KEY_SIZES:
             raise ValueError(f'{type(self).__name__}: Incompatible key length')
@@ -88,7 +88,7 @@ class KeySchedule:
 
 if __name__ == "__main__":
     s = compute_forward_sbox()
-    k = KeySchedule('sixteen chars :)')
+    k = KeySchedule(bytearray(16), sbox=s)
     print(k.key_size)
     print(k.key_words)
     print(k.round_keys)
