@@ -30,11 +30,7 @@ class ByteMatrix16:
         return self.get_row(item)
 
     def __repr__(self) -> str:
-        out = f'{type(self)}, {self.data=}\n'
-        for i in range(4):
-            row = ' '.join([chr(n) if self._debug_show_chars else f'{n:02x}' for n in self.get_row(i)])
-            out += row + '\n'
-        return out
+        return f'{type(self)}, {self.data=}\n, {[chr(n) if self._debug_show_chars else hex(n) for n in self.data]}'
 
     def get_row(self, idx: int) -> bytearray:
         return bytearray((self.data[idx],
@@ -57,6 +53,13 @@ class ByteMatrix16:
             new_col = bytearray(new_col, 'utf-8')
         row_idx = idx * 4
         self.data[row_idx : row_idx + 4] = new_col
+
+    def str_long(self):
+        out = 'Matrix contents: '
+        for i in range(4):
+            row = ' '.join([chr(n) if self._debug_show_chars else f'{n:02x}' for n in self.get_row(i)])
+            out += row + '\n'
+        return out
 
     def _size_text(self, remain: int):
         self.data.extend(('\x00' * remain).encode('utf-8'))
