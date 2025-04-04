@@ -43,13 +43,6 @@ def _num32_to_array(x: int) -> bytearray:
         mask >>= 8 # Shift mask to next byte
     return out
 
-# Converts array to list of int32s that key expansion can operate on
-def _get_words(key_bytes: bytearray) -> list[int]:
-    words = []
-    for idx in range(0, len(key_bytes), 4):
-        words.append(_array_to_num32(key_bytes[idx : idx + 4]))
-    return words
-
 class KeySchedule:
     _SBOX: list = None
 
@@ -58,16 +51,16 @@ class KeySchedule:
         # Get precalculated S-Box from user if provided
         self._SBOX = compute_forward_sbox() if (self._SBOX is None) and (sbox is None) else sbox
 
-        self.key_str = key.decode('utf-8') if isinstance(key, bytearray) else key
-        key_bytes = bytearray(key, 'utf-8') if isinstance(key, str) else key
+        self.key_str: str = key.decode('utf-8') if isinstance(key, bytearray) else key
+        self.key_bytes: bytearray = bytearray(key, 'utf-8') if isinstance(key, str) else key
 
-        self.key_size = len(key_bytes)
+        self.key_size = len(self.key_bytes)
         if self.key_size not in _KEY_SIZES:
             # Key must be 16, 24, or 32 bytes
             raise ValueError(f'{type(self).__name__}: Incompatible key length')
 
         self.rounds = _ROUND_COUNT[self.key_size]
-        self.key_words = _get_words(key_bytes)
+        self.key_words = self._get_words()
 
         # Key expansion
         self.round_keys = self._generate_round_keys()
@@ -83,6 +76,13 @@ class KeySchedule:
         for i in self.round_keys:
             print(i)
 
+    # Converts array to list of int32s that key expansion can operate on
+    def _get_words(self) -> list[int]:
+        words = []
+        for idx in range(0, len(self.key_bytes), 4):
+            words.append(_array_to_num32(self.key_bytes[idx: idx + 4]))
+        return words
+
     # Applies S-Box to each byte of an int32
     def _sub_word(self, word: int) -> int:
         out = 0
@@ -94,26 +94,26 @@ class KeySchedule:
 
     # Performs key expansion; can use 128, 192 and 256-bit keys
     def _generate_round_keys(self) -> list[ByteMatrix16]:
-        key_word_count = len(self.key_words)
-        sub2_check = 4 % key_word_count
-        expanded_words: list[int] = [] # "Words" are int32s
+        k_word_num = len(self.key_words)
+        sub2_check = 4 % k_word_num
+        words: list[int] = [] # "Words" are int32s
         round_keys: list[ByteMatrix16] = [] # Round keys stored as byte matrices
         # 4 words for each round, creating 16 byte keys
         for round_num in range(0, self.rounds * 4, 4):
             round_words: bytearray = bytearray()
             for i in range(round_num, round_num + 4):
                 # Operation derived from https://en.wikipedia.org/wiki/AES_key_schedule#The_key_schedule
-                if i < key_word_count:
+                if i < k_word_num:
                     word = self.key_words[i]
-                elif i % key_word_count == 0:
-                    g_word = self._sub_word(_l_rot32(expanded_words[i - 1]))
-                    word = expanded_words[i - key_word_count] ^ g_word ^ _RCON[i // key_word_count]
-                elif key_word_count > 6 and i % key_word_count == sub2_check:
-                    word = expanded_words[i - key_word_count] ^ self._sub_word(expanded_words[i - 1])
+                elif i % k_word_num == 0:
+                    g_word = self._sub_word(_l_rot32(words[i - 1]))
+                    word = words[i - k_word_num] ^ g_word ^ _RCON[i // k_word_num]
+                elif k_word_num > 6 and i % k_word_num == sub2_check:
+                    word = words[i - k_word_num] ^ self._sub_word(words[i - 1])
                 else:
-                    word = expanded_words[i - key_word_count] ^ expanded_words[i - 1]
+                    word = words[i - k_word_num] ^ words[i - 1]
                 # print(f'iter {i}: {word=}, {hex(word)=}')
-                expanded_words.append(word)
+                words.append(word)
                 round_words += _num32_to_array(word)
 
             #Every 4 words generated, create new 16 byte round key
