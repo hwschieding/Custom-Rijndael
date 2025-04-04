@@ -72,6 +72,17 @@ class KeySchedule:
         # Key expansion
         self.round_keys = self._generate_round_keys()
 
+    def __getitem__(self, idx):
+        return self.round_keys[idx]
+
+    def __repr__(self):
+        return f"{type(self)}, {self.key_str=}, {self.key_size=}"
+
+    def print_keys(self):
+        print(f'{self}\nRound keys: ')
+        for i in self.round_keys:
+            print(i)
+
     # Applies S-Box to each byte of an int32
     def _sub_word(self, word: int) -> int:
         out = 0
