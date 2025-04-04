@@ -2,8 +2,7 @@ from src.sbox import compute_forward_sbox
 from src.byte_matrix import ByteMatrix16
 
 # Constants for acceptable key sizes and round keys
-_KEY_SIZES = {16, 24, 32}
-_ROUND_COUNT = {
+_KEY_ROUND_SIZES = {
     16: 11,
     24: 13,
     32: 15
@@ -48,18 +47,18 @@ class KeySchedule:
 
     def __init__(self, key: str | bytearray, sbox=None):
 
-        # Get precalculated S-Box from user if provided
-        self._SBOX = compute_forward_sbox() if (self._SBOX is None) and (sbox is None) else sbox
+        # Get precalculated S-Box from user if needed & provided
+        if self._SBOX is None:
+            self._SBOX = compute_forward_sbox() if sbox is None else sbox
 
-        self.key_str: str = key.decode('utf-8') if isinstance(key, bytearray) else key
         self.key_bytes: bytearray = bytearray(key, 'utf-8') if isinstance(key, str) else key
 
         self.key_size = len(self.key_bytes)
-        if self.key_size not in _KEY_SIZES:
+        if self.key_size not in _KEY_ROUND_SIZES:
             # Key must be 16, 24, or 32 bytes
             raise ValueError(f'{type(self).__name__}: Incompatible key length')
 
-        self.rounds = _ROUND_COUNT[self.key_size]
+        self.rounds = _KEY_ROUND_SIZES[self.key_size]
         self.key_words = self._get_words()
 
         # Key expansion
@@ -69,7 +68,7 @@ class KeySchedule:
         return self.round_keys[idx]
 
     def __repr__(self):
-        return f"{type(self)}, {self.key_str=}, {self.key_size=}"
+        return f"{type(self)}, {self.key_size=}, {self.key_bytes}"
 
     def print_keys(self):
         print(f'{self}\nRound keys: ')
