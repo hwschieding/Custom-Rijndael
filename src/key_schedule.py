@@ -73,8 +73,8 @@ class KeySchedule:
 
     def print_keys(self):
         print(f'{self}\nRound keys: ')
-        for i in self.round_keys:
-            print(i)
+        for i, n in enumerate(self.round_keys):
+            print(f"Round {i}: {n}")
 
     # Converts array to list of int32s that key expansion can operate on
     def _get_words(self) -> list[int]:
@@ -120,3 +120,8 @@ class KeySchedule:
             round_keys.append(ByteMatrix16(round_words))
 
         return round_keys
+
+if __name__ == '__main__':
+    k = KeySchedule(bytearray(16))
+    ByteMatrix16._debug_show_chars = True
+    k.print_keys()

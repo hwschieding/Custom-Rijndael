@@ -30,7 +30,8 @@ class ByteMatrix16:
         return self.get_row(item)
 
     def __repr__(self) -> str:
-        return f'{type(self)}, {self.data=}\n, {[chr(n) if self._debug_show_chars else hex(n) for n in self.data]}'
+        out = ''.join(f'{" " if i % 4 == 0 else ""}{n:02x}' for i, n in enumerate(self.data))
+        return f'{type(self)},{out}, {self.data=}'
 
     def get_row(self, idx: int) -> bytearray:
         return bytearray((self.data[idx],
