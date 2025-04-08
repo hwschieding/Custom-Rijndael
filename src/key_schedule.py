@@ -68,7 +68,7 @@ class KeySchedule:
         return self.round_keys[idx]
 
     def __repr__(self):
-        return f"{type(self)}, {self.key_size=}, {self.key_bytes}"
+        return f"{type(self)}, {self.key_size=}, {self.key_bytes=}"
 
     def print_keys(self):
         print(f'{self}\nRound keys: ')
