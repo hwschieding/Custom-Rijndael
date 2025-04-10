@@ -119,8 +119,3 @@ class KeySchedule:
             round_keys.append(ByteMatrix16(round_words))
 
         return round_keys
-
-if __name__ == '__main__':
-    k = KeySchedule(bytearray(16))
-    ByteMatrix16._debug_show_chars = True
-    k.print_keys()
