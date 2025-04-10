@@ -1,6 +1,7 @@
 from src.galois_math import g_mul
 from src.byte_matrix import ByteMatrix16
 
+# Matrix constants for MixColumns
 MIX_FORWARD = [[2, 3, 1, 1], [1, 2, 3, 1], [1, 1, 2, 3], [3, 1, 1, 2]]
 MIX_INVERSE = [[14, 11, 13, 9], [9, 14, 11, 13], [13, 9, 14, 11], [11, 13, 9, 14]]
 
@@ -14,12 +15,35 @@ def str_to_byte_matrices(text: str) -> list:
         mxs.append(mx)
     return mxs
 
+# Applies permutation to column. Matrix constants from https://en.wikipedia.org/wiki/Rijndael_MixColumns#Matrix_representation
 def _mix_column(col: bytearray, inv=False) -> bytearray:
+    # Get matrix constant
     mix = MIX_INVERSE if inv else MIX_FORWARD
     new = bytearray(4)
-    for b in range(4):
-        new[b] = g_mul(col[0], mix[b][0]) ^ g_mul(col[1], mix[b][1]) ^ g_mul(col[2], mix[b][2]) ^ g_mul(col[3], mix[b][3])
+    # Multiply column bytes as coordinate vector with matrix, using Galois field
+    for mix_row in range(4):
+        res = 0
+        for mix_col in range(4):
+            res ^= g_mul(col[mix_col], mix[mix_row][mix_col])
+        new[mix_row] = res
     return new
+
+# MixColumns step; applies permutation to all columns in the state
+def _mix_columns(state: ByteMatrix16) -> ByteMatrix16:
+    res = ByteMatrix16()
+    for idx, col in enumerate(state.columns()):
+        res.set_column(idx, _mix_column(col))
+    return res
+
+# ShiftRows step; cyclically shifts rows to the left by increasing offset
+def _shift_rows(state: ByteMatrix16) -> ByteMatrix16:
+    res = ByteMatrix16()
+    res.set_row(0, state.get_row(0))
+    for idx, row in enumerate(state.rows(start=1)):
+        offset = idx + 1
+        new: bytearray = row[offset : 4] + row[0 : offset]
+        res.set_row(offset, new)
+    return res
 
 # Main Rijndael class
 class Rijndael:
@@ -27,18 +51,9 @@ class Rijndael:
         self.plaintext_bytes = str_to_byte_matrices(plaintext)
         self.state: ByteMatrix16 = self.plaintext_bytes[0]
 
-    def shift_rows(self):
-        for row in range(1, 4):
-            offset = row
-            old = self.state.get_row(row)
-            new: bytearray = old[offset : 4] + old[0 : offset]
-            self.state.set_row(row, new)
-
-
 
 if __name__ == '__main__':
-    a = bytearray(b'\x63\x47\xa2\xf0')
-    b = _mix_column(a)
-    print(bytes(a).hex())
-    print(bytes(b).hex())
-    print(bytes(_mix_column(b, inv=True)).hex())
+    b = ByteMatrix16(bytearray('sixteen chars :)', 'utf-8'))
+    ByteMatrix16._debug_show_chars = True
+    print(b.str_long())
+    print(_shift_rows(b).str_long())
