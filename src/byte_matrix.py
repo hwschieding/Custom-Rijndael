@@ -56,7 +56,7 @@ class ByteMatrix16:
         self.data[row_idx : row_idx + 4] = new_col
 
     def str_long(self):
-        out = 'Matrix contents: '
+        out = 'Matrix contents:\n'
         for i in range(4):
             row = ' '.join([chr(n) if self._debug_show_chars else f'{n:02x}' for n in self.get_row(i)])
             out += row + '\n'
