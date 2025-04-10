@@ -30,8 +30,9 @@ class ByteMatrix16:
         return self.get_row(item)
 
     def __repr__(self) -> str:
-        out = ''.join(f'{" " if i % 4 == 0 else ""}{n:02x}' for i, n in enumerate(self.data))
-        return f'{type(self)},{out}, {self.data=}'
+        out = self.data.decode(errors='replace') if self._debug_show_chars else ' '.join(self.data[i : i + 4].hex() for i in range(0, 16, 4))
+        # out = ''.join(f'{" " if i % 4 == 0 else ""}{n:02x}' for i, n in enumerate(self.data))
+        return f'{type(self)}, {out}, {self.data=}'
 
     def get_row(self, idx: int) -> bytearray:
         return bytearray((self.data[idx],
@@ -55,12 +56,21 @@ class ByteMatrix16:
         row_idx = idx * 4
         self.data[row_idx : row_idx + 4] = new_col
 
-    def str_long(self):
+    def str_long(self) -> str:
         out = 'Matrix contents:\n'
         for i in range(4):
-            row = ' '.join([chr(n) if self._debug_show_chars else f'{n:02x}' for n in self.get_row(i)])
+            row_bytes = self.get_row(i)
+            row = ' '.join(row_bytes.decode(errors='replace')) if self._debug_show_chars else row_bytes.hex(' ')
+            # row = ' '.join([chr(n) if self._debug_show_chars else f'{n:02x}' for n in self.get_row(i)])
             out += row + '\n'
         return out
 
     def _size_text(self, remain: int):
         self.data.extend(('\x00' * remain).encode('utf-8'))
+
+
+if __name__ == '__main__':
+    b = ByteMatrix16(bytearray(b'\x63\x47\xa2\xf0\xf2\x0a\x22\x5c\x01\x01\x01\x01\xc6\xc6\xc6\xc6'))
+    print(b.str_long())
+    ByteMatrix16._debug_show_chars = True
+    print(b.str_long())
