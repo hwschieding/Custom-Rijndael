@@ -17,7 +17,7 @@ class ByteMatrix16:
 
     _debug_show_chars = False
 
-    def __init__(self, text_bytes: bytearray):
+    def __init__(self, text_bytes:bytearray=bytearray(0)):
         self.data = text_bytes
         # Ensure text is 16 bytes
         bytes_len = len(self.data)
@@ -56,6 +56,12 @@ class ByteMatrix16:
         row_idx = idx * 4
         self.data[row_idx : row_idx + 4] = new_col
 
+    def columns(self, start=0):
+        return (self.get_column(i) for i in range(start, 4))
+
+    def rows(self, start=0):
+        return (self.get_row(i) for i in range(start, 4))
+
     def str_long(self) -> str:
         out = 'Matrix contents:\n'
         for i in range(4):
@@ -67,10 +73,3 @@ class ByteMatrix16:
 
     def _size_text(self, remain: int):
         self.data.extend(('\x00' * remain).encode('utf-8'))
-
-
-if __name__ == '__main__':
-    b = ByteMatrix16(bytearray(b'\x63\x47\xa2\xf0\xf2\x0a\x22\x5c\x01\x01\x01\x01\xc6\xc6\xc6\xc6'))
-    print(b.str_long())
-    ByteMatrix16._debug_show_chars = True
-    print(b.str_long())
