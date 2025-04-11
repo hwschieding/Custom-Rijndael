@@ -17,7 +17,7 @@ class ByteMatrix16:
 
     _debug_show_chars = False
 
-    def __init__(self, text_bytes:bytearray=bytearray(0)):
+    def __init__(self, text_bytes:bytearray=bytearray(16)):
         self.data = text_bytes
         # Ensure text is 16 bytes
         bytes_len = len(self.data)
@@ -30,7 +30,7 @@ class ByteMatrix16:
         return self.get_row(item)
 
     def __repr__(self) -> str:
-        out = self.data.decode(errors='replace') if self._debug_show_chars else ' '.join(self.data[i : i + 4].hex() for i in range(0, 16, 4))
+        out = self.data.decode(errors='replace') if self._debug_show_chars else self.data.hex(' ', 4)
         # out = ''.join(f'{" " if i % 4 == 0 else ""}{n:02x}' for i, n in enumerate(self.data))
         return f'{type(self)}, {out}, {self.data=}'
 
@@ -67,9 +67,8 @@ class ByteMatrix16:
         for i in range(4):
             row_bytes = self.get_row(i)
             row = ' '.join(row_bytes.decode(errors='replace')) if self._debug_show_chars else row_bytes.hex(' ')
-            # row = ' '.join([chr(n) if self._debug_show_chars else f'{n:02x}' for n in self.get_row(i)])
             out += row + '\n'
         return out
 
-    def _size_text(self, remain: int):
-        self.data.extend(('\x00' * remain).encode('utf-8'))
+    def _size_text(self, remain: int) -> None:
+        self.data.extend(b'\x00' * remain)

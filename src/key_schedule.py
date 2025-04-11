@@ -85,8 +85,7 @@ class KeySchedule:
     # Applies S-Box to each byte of an int32
     def _sub_word(self, word: int) -> int:
         out = 0
-        for i in range(4):
-            shift = i * 8
+        for shift in range(0, 32, 8):
             mask = 0xFF << shift
             out += self._SBOX[(word & mask) >> shift] << shift
         return out
