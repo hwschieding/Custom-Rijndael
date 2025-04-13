@@ -1,20 +1,19 @@
-"""
-Datatype for a 4x4 matrix of bytes in order to more easily perform matrix operations on bytes.
-Stored internally as a simple 16 element bytearray for memory efficiency, with methods to handle
-getting and setting rows/columns/elements.
-
-AES converts the plaintext input into **COLUMN-MAJOR ORDER** matrices, in other words:
-'0123456789abcdef' ->
-    0 4 8 c
-    1 5 9 d
-    2 6 a e
-    3 7 b f
-
-This does have an effect on how some AES functions operate in Python, so row/column based
-functions have to be "backwards" to accommodate this behavior.
-"""
 class ByteMatrix16:
+    """
+    Datatype for a 4x4 matrix of bytes in order to more easily perform matrix operations on bytes.
+    Stored internally as a simple 16 element bytearray for memory efficiency, with methods to handle
+    getting and setting rows/columns/elements.
 
+    AES converts the plaintext input into **COLUMN-MAJOR ORDER** matrices, in other words:
+    '0123456789abcdef' ->
+        0 4 8 c
+        1 5 9 d
+        2 6 a e
+        3 7 b f
+
+    This does have an effect on how some AES functions operate in Python, so row/column based
+    functions have to be "backwards" to accommodate this behavior.
+    """
     _debug_show_chars = False
 
     def __init__(self, text_bytes:bytearray=bytearray(16)):
