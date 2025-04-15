@@ -28,6 +28,12 @@ class ByteMatrix16:
     def __getitem__(self, item) -> bytearray:
         return self.get_row(item)
 
+    def __xor__(self, other):
+        res = bytearray(0)
+        for i, n in enumerate(self.data):
+            res.append(n ^ other.data[i])
+        return ByteMatrix16(res)
+
     def __repr__(self) -> str:
         out = self.data.decode(errors='replace') if self._debug_show_chars else self.data.hex(' ', 4)
         # out = ''.join(f'{" " if i % 4 == 0 else ""}{n:02x}' for i, n in enumerate(self.data))
