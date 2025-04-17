@@ -25,8 +25,13 @@ class ByteMatrix16:
         elif bytes_len < 16:
             self._size_text(16 - bytes_len)
 
-    def __getitem__(self, item) -> bytearray:
-        return self.get_row(item)
+    def __getitem__(self, item: tuple) -> bytearray:
+        return self.get_row(item[0])[item[1]]
+
+    def __setitem__(self, key: tuple, value):
+        new_row = self.get_row(key[0])
+        new_row[key[1]] = value
+        self.set_row(key[0], new_row)
 
     def __xor__(self, other):
         res = bytearray(0)
