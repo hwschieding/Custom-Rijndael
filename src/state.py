@@ -23,6 +23,10 @@ class State(ByteMatrix16):
     def __init__(self, text_bytes:bytearray=bytearray(16)):
         super().__init__(text_bytes)
 
+    def sub_bytes(self, sbox: list):
+        for i in range(16):
+            self.data[i] = sbox[self.data[i]]
+
     # MixColumns step; applies permutation to all columns in the state
     def mix_columns(self):
         for idx, col in enumerate(self.columns()):
