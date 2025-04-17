@@ -27,6 +27,7 @@ class Rijndael:
         self.plaintext_bytes = str_to_byte_matrices(plaintext)
         self.round_keys = KeySchedule(key, self._SBOX_FORWARD)
 
+    # Full AES encryption as described at https://en.wikipedia.org/wiki/Advanced_Encryption_Standard#High-level_description_of_the_algorithm
     def encrypt(self):
         encrypted_states = []
         for plain_state in self.plaintext_bytes:
@@ -42,6 +43,22 @@ class Rijndael:
             encrypted_states.append(state)
         return encrypted_states
 
+    # Full AES decryption; same as encryption but reversed with inversed methods
+    def decrypt(self, encrypted_states):
+        decrypted_states = []
+        for e_state in encrypted_states:
+            state = e_state ^ self.round_keys[-1]
+            state.shift_rows_inv()
+            state.sub_bytes(self._SBOX_INVERSE)
+            for key_idx in range(len(self.round_keys) - 2, 0, -1):
+                state ^= self.round_keys[key_idx]
+                state.mix_columns_inv()
+                state.shift_rows_inv()
+                state.sub_bytes(self._SBOX_INVERSE)
+            state ^= self.round_keys[0]
+            decrypted_states.append(state)
+        return decrypted_states
+
     def change_key(self, new_key: str):
         self.key = new_key
         self.round_keys = KeySchedule(new_key, self._SBOX_FORWARD)
@@ -49,5 +66,10 @@ class Rijndael:
 
 if __name__ == '__main__':
     sbox_f = compute_forward_sbox()
-    r = Rijndael('\x00\x00\x01\x01\x03\x03\x07\x07\x0f\x0f\x1f\x1f\x3f\x3f\x7f\x7f', '\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00', sbox_f)
-    print(r.encrypt())
+    sbox_i = compute_inverse_sbox()
+    # '\x00\x00\x01\x01\x03\x03\x07\x07\x0f\x0f\x1f\x1f\x3f\x3f\x7f\x7f'
+    r = Rijndael('sixteen bytes :)', '\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00', sbox_f, sbox_i)
+    e_r = r.encrypt()
+    print(e_r)
+    print()
+    print(r.decrypt(e_r))
