@@ -27,6 +27,12 @@ class State(ByteMatrix16):
         for i in range(16):
             self.data[i] = sbox[self.data[i]]
 
+    def __xor__(self, other):
+        res = bytearray(0)
+        for i, n in enumerate(self.data):
+            res.append(n ^ other.data[i])
+        return State(res)
+
     # MixColumns step; applies permutation to all columns in the state
     def mix_columns(self):
         for idx, col in enumerate(self.columns()):

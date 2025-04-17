@@ -48,8 +48,6 @@ class Rijndael:
 
 
 if __name__ == '__main__':
-    b = State(bytearray('sixteen chars :)', 'utf-8'))
-    ByteMatrix16._debug_show_chars = True
-    print(b.str_long())
-    b.shift_rows()
-    print(b.str_long())
+    sbox_f = compute_forward_sbox()
+    r = Rijndael('\x00\x00\x01\x01\x03\x03\x07\x07\x0f\x0f\x1f\x1f\x3f\x3f\x7f\x7f', '\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00', sbox_f)
+    print(r.encrypt())
