@@ -67,6 +67,9 @@ class KeySchedule:
     def __getitem__(self, idx):
         return self.round_keys[idx]
 
+    def __len__(self):
+        return len(self.round_keys)
+
     def __repr__(self):
         return f"{type(self)}, {self.key_size=}, {self.key_bytes=}"
 
