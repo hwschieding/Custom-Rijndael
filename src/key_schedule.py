@@ -56,7 +56,7 @@ class KeySchedule:
         self.key_size = len(self.key_bytes)
         if self.key_size not in _KEY_ROUND_SIZES:
             # Key must be 16, 24, or 32 bytes
-            raise ValueError(f'{type(self).__name__}: Incompatible key length')
+            raise ValueError(f'{type(self).__name__}: Incompatible key length ({self.key_size} bytes)')
 
         self.rounds = _KEY_ROUND_SIZES[self.key_size]
         self.key_words = self._get_words()
