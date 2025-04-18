@@ -30,20 +30,24 @@ class Rijndael:
     # Full AES encryption as described at https://en.wikipedia.org/wiki/Advanced_Encryption_Standard#High-level_description_of_the_algorithm
     def encrypt(self):
         encrypted_states = []
+        # Operates on each 16 byte state "block" individually
         for plain_state in self.plaintext_bytes:
+            # Initialize state with key addition
             state = plain_state ^ self.round_keys[0]
+            # 10-14 rounds based on key length
             for key_idx in range(1, len(self.round_keys) - 1):
                 state.sub_bytes(self._SBOX_FORWARD)
                 state.shift_rows()
                 state.mix_columns()
                 state ^= self.round_keys[key_idx]
+            # Final round (doesn't include MixColumns)
             state.sub_bytes(self._SBOX_FORWARD)
             state.shift_rows()
             state ^= self.round_keys[-1]
             encrypted_states.append(state)
         return encrypted_states
 
-    # Full AES decryption; same as encryption but reversed with inversed methods
+    # Full AES decryption; identical to encryption except reversed + using inverse methods
     def decrypt(self, encrypted_states):
         decrypted_states = []
         for e_state in encrypted_states:
@@ -58,6 +62,10 @@ class Rijndael:
             state ^= self.round_keys[0]
             decrypted_states.append(state)
         return decrypted_states
+
+    def change_plaintext(self, new_plaintext):
+        self.plaintext = new_plaintext
+        self.plaintext_bytes = str_to_byte_matrices(new_plaintext)
 
     def change_key(self, new_key: str):
         self.key = new_key
