@@ -18,27 +18,29 @@ def states_to_str(mxs: list, hex_str=False) -> str:
         text_bytes += state.data
     if hex_str:
         return text_bytes.hex()
-    return text_bytes.decode('utf-8', errors='replace')
+    return text_bytes.decode('utf-8', errors='replace').rstrip('\x00')
 
 # Main Rijndael class
 class Rijndael:
     _SBOX_FORWARD = None
     _SBOX_INVERSE = None
-    def __init__(self, plaintext: str, key: str, sbox_f=None, sbox_i=None):
+    def __init__(self, plaintext: str, key: str | KeySchedule, sbox_f=None, sbox_i=None):
         self._SBOX_FORWARD = compute_forward_sbox() if sbox_f is None else sbox_f
         self._SBOX_INVERSE = compute_inverse_sbox() if sbox_i is None else sbox_i
 
         self.plaintext = plaintext
-        self.key = key
+        self.key = key.key_bytes.decode(errors='replace') if isinstance(key, KeySchedule) else key
 
         self.plaintext_bytes = array_to_states(bytearray(plaintext, 'utf-8'))
-        self.round_keys = KeySchedule(key, self._SBOX_FORWARD)
+        self.round_keys = KeySchedule(key, self._SBOX_FORWARD) if isinstance(key, str) else key
 
     # Full AES encryption as described at https://en.wikipedia.org/wiki/Advanced_Encryption_Standard#High-level_description_of_the_algorithm
     def encrypt(self) -> str:
+        print(f"Beginning encryption with plaintext '{self.plaintext}' and key '{self.key}'")
         encrypted_states = []
         # Operates on each 16 byte state "block" individually
         for plain_state in self.plaintext_bytes:
+            print(f'[Encryption] Encrypting state {plain_state}')
             # Initialize state with key addition
             state = plain_state ^ self.round_keys[0]
             # 10-14 rounds based on key length
@@ -47,26 +49,32 @@ class Rijndael:
                 state.shift_rows()
                 state.mix_columns()
                 state ^= self.round_keys[key_idx]
+                print(f'[Encryption] Round {key_idx}: {state}')
             # Final round (doesn't include MixColumns)
             state.sub_bytes(self._SBOX_FORWARD)
             state.shift_rows()
             state ^= self.round_keys[-1]
+            print(f'[Encryption] Final Round ({len(self.round_keys) - 1}): {state}')
             encrypted_states.append(state)
         return states_to_str(encrypted_states, hex_str=True)
 
     # Full AES decryption; identical to encryption except reversed + using inverse methods
     def decrypt(self, encrypted_hex_str: str):
+        print(f"Beginning decryption with hex '{encrypted_hex_str}' and key '{self.key}'")
         encrypted_states = array_to_states(bytearray.fromhex(encrypted_hex_str))
         decrypted_states = []
         for e_state in encrypted_states:
+            print(f'[Decryption] Decrypting state {e_state}')
             state = e_state ^ self.round_keys[-1]
             state.shift_rows_inv()
             state.sub_bytes(self._SBOX_INVERSE)
+            print(f'[Decryption] Round {len(self.round_keys) - 1}: {state}')
             for key_idx in range(len(self.round_keys) - 2, 0, -1):
                 state ^= self.round_keys[key_idx]
                 state.mix_columns_inv()
                 state.shift_rows_inv()
                 state.sub_bytes(self._SBOX_INVERSE)
+                print(f'[Decryption] Round {key_idx}: {state}')
             state ^= self.round_keys[0]
             decrypted_states.append(state)
         return states_to_str(decrypted_states)
@@ -83,7 +91,7 @@ if __name__ == '__main__':
     sbox_f = compute_forward_sbox()
     sbox_i = compute_inverse_sbox()
     # '\x00\x00\x01\x01\x03\x03\x07\x07\x0f\x0f\x1f\x1f\x3f\x3f\x7f\x7f'
-    r = Rijndael('sixteen bytes :)', '\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00', sbox_f, sbox_i)
+    r = Rijndael('more than sixteen bytes :)', '\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00', sbox_f, sbox_i)
     e_r = r.encrypt()
     print(e_r)
     print()
