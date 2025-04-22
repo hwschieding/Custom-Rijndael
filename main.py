@@ -23,6 +23,7 @@ if __name__ == "__main__":
         except Exception as e:
             print(f"{e}; try again")
 
+    print(f'\nKey size: {cipher_key.key_size * 8}-bit')
     cipher = Rijndael(user_text, cipher_key, s_box_forward, s_box_inverse)
     user_choice = input("\nType 'e' for encryption, 'd' for decryption: ")
     if user_choice == 'e':
