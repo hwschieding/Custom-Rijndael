@@ -24,10 +24,10 @@ if __name__ == "__main__":
             print(f"{e}; try again")
 
     print(f'\nKey size: {cipher_key.key_size * 8}-bit')
-    cipher = Rijndael(user_text, cipher_key, s_box_forward, s_box_inverse)
+    cipher = Rijndael(cipher_key, s_box_forward, s_box_inverse)
     user_choice = input("\nType 'e' for encryption, 'd' for decryption: ")
     if user_choice == 'e':
-        cipher_text = cipher.encrypt()
+        cipher_text = cipher.encrypt(user_text)
         print(f'\nEncrypted ciphertext (hex format): {cipher_text}')
     if user_choice == 'd':
         plaintext = cipher.decrypt(user_text)

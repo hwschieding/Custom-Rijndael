@@ -24,22 +24,21 @@ def states_to_str(mxs: list, hex_str=False) -> str:
 class Rijndael:
     _SBOX_FORWARD = None
     _SBOX_INVERSE = None
-    def __init__(self, plaintext: str, key: str | KeySchedule, sbox_f=None, sbox_i=None):
+    def __init__(self, key: str | KeySchedule, sbox_f=None, sbox_i=None):
         self._SBOX_FORWARD = compute_forward_sbox() if sbox_f is None else sbox_f
         self._SBOX_INVERSE = compute_inverse_sbox() if sbox_i is None else sbox_i
 
-        self.plaintext = plaintext
         self.key = key.key_bytes.decode(errors='replace') if isinstance(key, KeySchedule) else key
 
-        self.plaintext_bytes = array_to_states(bytearray(plaintext, 'utf-8'))
         self.round_keys = KeySchedule(key, self._SBOX_FORWARD) if isinstance(key, str) else key
 
     # Full AES encryption as described at https://en.wikipedia.org/wiki/Advanced_Encryption_Standard#High-level_description_of_the_algorithm
-    def encrypt(self) -> str:
-        print(f"Beginning encryption with plaintext '{self.plaintext}' and key '{self.key}'")
+    def encrypt(self, plaintext: str | bytearray) -> str:
+        print(f"Beginning encryption with plaintext '{plaintext}' and key '{self.key}'")
+        plaintext_bytes = array_to_states(bytearray(plaintext, 'utf-8') if isinstance(plaintext, str) else plaintext)
         encrypted_states = []
         # Operates on each 16 byte state "block" individually
-        for plain_state in self.plaintext_bytes:
+        for plain_state in plaintext_bytes:
             print(f'[Encryption] Encrypting state {plain_state}')
             # Initialize state with key addition
             state = plain_state ^ self.round_keys[0]
@@ -79,10 +78,6 @@ class Rijndael:
             decrypted_states.append(state)
         return states_to_str(decrypted_states)
 
-    def change_plaintext(self, new_plaintext: str):
-        self.plaintext = new_plaintext
-        self.plaintext_bytes = array_to_states(bytearray(new_plaintext, 'utf-8'))
-
     def change_key(self, new_key: str):
         self.key = new_key
         self.round_keys = KeySchedule(new_key, self._SBOX_FORWARD)
@@ -91,8 +86,8 @@ if __name__ == '__main__':
     sbox_f = compute_forward_sbox()
     sbox_i = compute_inverse_sbox()
     # '\x00\x00\x01\x01\x03\x03\x07\x07\x0f\x0f\x1f\x1f\x3f\x3f\x7f\x7f'
-    r = Rijndael('more than sixteen bytes :)', '\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00', sbox_f, sbox_i)
-    e_r = r.encrypt()
+    r = Rijndael('\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00', sbox_f, sbox_i)
+    e_r = r.encrypt('sixteen bytes :)')
     print(e_r)
     print()
     print(r.decrypt(e_r))
