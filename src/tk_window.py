@@ -42,7 +42,7 @@ class ActionInput:
         self.file_lbl.config(text=self._get_file_label())
 
     def _get_file_label(self) -> str:
-        return "No file selected" if self.user_file == "" else self.user_file
+        return "No file selected" if self.user_file == "" else os.path.basename(self.user_file)
 
 class KeyInput:
     def __init__(self, master):
