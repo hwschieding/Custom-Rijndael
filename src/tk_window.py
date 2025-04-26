@@ -1,6 +1,7 @@
 from tkinter import *
 from tkinter import ttk
 from tkinter import filedialog
+from ctypes import windll
 import os
 from src.key_schedule import _KEY_ROUND_SIZES
 from src.rijndael import Rijndael
@@ -8,6 +9,12 @@ from src.rijndael import Rijndael
 OUT_DIR = os.path.dirname(__file__)
 ENCRYPT_OUT = os.path.join(OUT_DIR, 'encrypt_out.txt')
 DECRYPT_OUT = os.path.join(OUT_DIR, 'decrypt_out.txt')
+
+def validate_extension(ext):
+    if ext == '':
+        return False
+    else:
+        return True if ext[0] == '.' else False
 
 class ActionInput:
     def __init__(self, master, func, label_txt, button_txt):
@@ -22,8 +29,9 @@ class ActionInput:
         self.file_lbl.grid(row=0, column=1, sticky=W)
 
         self.action_frame = ttk.Frame(self.main_frame)
+        extension_validate_command = self.action_frame.register(validate_extension)
         self.encrypt_button = ttk.Button(self.action_frame, text=button_txt, command=func)
-        self.extension_options = ttk.Combobox(self.action_frame, values=(".txt", ".docx"), width=6)
+        self.extension_options = ttk.Combobox(self.action_frame, values=(".txt", ".docx"), width=6, validate='key', validatecommand=(extension_validate_command, '%P'))
         self.extension_options.current(0)
         self.encrypt_button.grid(row=0, column=0)
         self.extension_options.grid(row=0, column=1)
@@ -103,6 +111,7 @@ class KeyInput:
 class RijndaelGui:
     def __init__(self):
         self.root = Tk()
+        windll.shcore.SetProcessDpiAwareness(1)
         self.main_frame = ttk.Frame(self.root, padding=(10, 10, 10, 10))
         self.main_frame.grid(row=0, column=0)
         ttk.Label(self.main_frame, text="AES Encryption Algorithm").grid(row=0, column=0, sticky=W)
