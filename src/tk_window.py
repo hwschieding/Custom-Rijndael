@@ -1,14 +1,14 @@
-from tkinter import *
+from tkinter import Tk, W, StringVar
 from tkinter import ttk
 from tkinter import filedialog
-from ctypes import windll
+# from ctypes import windll
 import os
 from src.key_schedule import _KEY_ROUND_SIZES
 from src.rijndael import Rijndael
 
 OUT_DIR = os.path.dirname(__file__)
-ENCRYPT_OUT = os.path.join(OUT_DIR, 'encrypt_out.txt')
-DECRYPT_OUT = os.path.join(OUT_DIR, 'decrypt_out.txt')
+ENCRYPT_OUT = os.path.join(OUT_DIR, 'encrypt_out')
+DECRYPT_OUT = os.path.join(OUT_DIR, 'decrypt_out')
 
 def validate_extension(ext):
     if ext == '':
@@ -46,7 +46,7 @@ class ActionInput:
         self.main_frame.grid(row=row, column=column, sticky=W)
 
     def select_file(self):
-        self.user_file = filedialog.askopenfilename(filetypes=[('Text Files', '*.txt')])
+        self.user_file = filedialog.askopenfilename(filetypes=[('Text Files', '*.txt'), ('All Files', '*.*')])
         self.file_lbl.config(text=self._get_file_label())
 
     def _get_file_label(self) -> str:
@@ -111,7 +111,8 @@ class KeyInput:
 class RijndaelGui:
     def __init__(self):
         self.root = Tk()
-        windll.shcore.SetProcessDpiAwareness(1)
+        self.root.title("AES Implementation")
+        # windll.shcore.SetProcessDpiAwareness(1)
         self.main_frame = ttk.Frame(self.root, padding=(10, 10, 10, 10))
         self.main_frame.grid(row=0, column=0)
         ttk.Label(self.main_frame, text="AES Encryption Algorithm").grid(row=0, column=0, sticky=W)
@@ -127,7 +128,7 @@ class RijndaelGui:
                                            func=lambda : self.start_AES(
                                                   'e',
                                                   self.plaintext_input,
-                                                  ENCRYPT_OUT
+                                                  ENCRYPT_OUT + self.plaintext_input.extension_options.get()
                                               ),
                                            label_txt="Plaintext file (*.txt, etc)",
                                            button_txt='Encrypt'
@@ -140,7 +141,7 @@ class RijndaelGui:
                                             lambda : self.start_AES(
                                                 'd',
                                                 self.ciphertext_input,
-                                                DECRYPT_OUT
+                                                DECRYPT_OUT + self.ciphertext_input.extension_options.get()
                                             ),
                                             label_txt="Ciphertext file (*.txt, etc)",
                                             button_txt="Decrypt"
