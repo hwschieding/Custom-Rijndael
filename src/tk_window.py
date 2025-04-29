@@ -31,7 +31,8 @@ class ActionInput:
         self.action_frame = ttk.Frame(self.main_frame)
         extension_validate_command = self.action_frame.register(validate_extension)
         self.encrypt_button = ttk.Button(self.action_frame, text=button_txt, command=func)
-        self.extension_options = ttk.Combobox(self.action_frame, values=(".txt", ".docx"), width=6, validate='key', validatecommand=(extension_validate_command, '%P'))
+        self.extension_options = ttk.Combobox(self.action_frame, values=(".txt", ".docx"), width=6, validate='key',
+                                              validatecommand=(extension_validate_command, '%P'))
         self.extension_options.current(0)
         self.encrypt_button.grid(row=0, column=0)
         self.extension_options.grid(row=0, column=1)
@@ -155,6 +156,10 @@ class RijndaelGui:
         self.root.mainloop()
 
     def start_AES(self, mode: str, text_input, out_file):
+        extension = text_input.extension_options.get()
+        if len(extension) < 2 or (not extension[1:].isalnum()):
+            text_input.message.config(text=f'Invalid extension ({extension})', foreground='red')
+            return
         if not self.key_input.ready:
             text_input.message.config(text='Invalid key', foreground='red')
             return
@@ -167,7 +172,9 @@ class RijndaelGui:
                 input_bytes = bytearray(f_in.read())
                 post_action_bytes = r.encrypt(input_bytes) if mode == 'e' else r.decrypt(input_bytes)
                 f_out.write(post_action_bytes)
-            text_input.message.config(text=f'Ciphertext outputted to {out_file}', foreground='black')
+            text_input.message.config(text=f'{"Cipher" if mode == 'e' else "Plain"}text outputted to {out_file}',
+                                      foreground='black'
+                                      )
         except Exception as e:
             text_input.message.config(text=f'Something went wrong ({e})', foreground='red')
 
