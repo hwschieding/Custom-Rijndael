@@ -4,18 +4,27 @@ from src.key_schedule import KeySchedule
 from src.sbox import compute_forward_sbox, compute_inverse_sbox
 
 # Converts str into list of 4x4 byte matrices that can be operated on by AES
-def array_to_states(text_bytes: bytearray) -> list[State]:
+def array_to_states(text_bytes: bytearray, padding: bool=True) -> list[State]:
     mxs = []
+    if padding:
+        # Padding text to 16 bytes
+        padding = 16 - (len(text_bytes) % 16)
+        text_bytes += (bytearray(padding.to_bytes(1)) * padding)
     for chunk16_idx in range(0, len(text_bytes), 16): # Split plaintext to 16 byte blocks
         # Final block may be <16 bytes, remainder will be sized with null bytes on instantiation
         mx = State(text_bytes[chunk16_idx : chunk16_idx + 16])
         mxs.append(mx)
     return mxs
 
-def states_to_array(mxs: list) -> bytearray:
+def states_to_array(mxs: list, remove_padding: bool=False) -> bytearray:
     text_bytes = bytearray()
     for state in mxs:
         text_bytes += state.data
+    if remove_padding:
+        print(f"Before padding {text_bytes}")
+        padding = text_bytes[-1]
+        text_bytes = text_bytes[:-padding]
+        print(f"After padding {text_bytes}")
     return text_bytes
 
 # Main Rijndael class
@@ -58,7 +67,7 @@ class Rijndael:
     # Full AES decryption; identical to encryption except reversed + using inverse methods
     def decrypt(self, ciphertext: str | bytearray) -> bytearray:
         print(f"Beginning decryption with ciphertext '{ciphertext}' and key '{self.key}'")
-        encrypted_states = array_to_states(bytearray(ciphertext, 'utf-8') if isinstance(ciphertext, str) else ciphertext)
+        encrypted_states = array_to_states(bytearray(ciphertext, 'utf-8') if isinstance(ciphertext, str) else ciphertext, padding=False)
         decrypted_states = []
         for e_state in encrypted_states:
             print(f'[Decryption] Decrypting state {e_state}')
@@ -74,18 +83,24 @@ class Rijndael:
                 print(f'[Decryption] Round {key_idx}: {state}')
             state ^= self.round_keys[0]
             decrypted_states.append(state)
-        return states_to_array(decrypted_states)
+        return states_to_array(decrypted_states, remove_padding=True)
 
     def change_key(self, new_key: str):
         self.key = new_key
         self.round_keys = KeySchedule(new_key, self._SBOX_FORWARD)
 
 if __name__ == '__main__':
-    sbox_f = compute_forward_sbox()
-    sbox_i = compute_inverse_sbox()
+    r = Rijndael(bytearray("0123456789abcdef", 'utf-8'))
+    b = bytearray('Test words to encrypt:)', 'utf-8')
+    e = r.encrypt(b)
+    print(e)
+    print(r.decrypt(e))
+
+    # sbox_f = compute_forward_sbox()
+    # sbox_i = compute_inverse_sbox()
     # '\x00\x00\x01\x01\x03\x03\x07\x07\x0f\x0f\x1f\x1f\x3f\x3f\x7f\x7f'
-    r = Rijndael('\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00', sbox_f, sbox_i)
-    e_r = r.encrypt('sixteen bytes :)')
-    print(e_r)
-    print()
-    print(r.decrypt(e_r))
+    # r = Rijndael('\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00', sbox_f, sbox_i)
+    # e_r = r.encrypt('sixteen bytes :)')
+    # print(e_r)
+    # print()
+    # print(r.decrypt(e_r))
