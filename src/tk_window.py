@@ -11,10 +11,14 @@ ENCRYPT_OUT = os.path.join(OUT_DIR, 'encrypt_out')
 DECRYPT_OUT = os.path.join(OUT_DIR, 'decrypt_out')
 
 def validate_extension(ext):
-    if ext == '':
+    if ext == '' or  ext[0] != '.':
         return False
+    if len(ext) == 1:
+        return True
+    if len(ext) > 1 and ext[1:].isalnum():
+        return True
     else:
-        return True if ext[0] == '.' else False
+        return False
 
 class ActionInput:
     def __init__(self, master, func, label_txt, button_txt):
@@ -157,7 +161,7 @@ class RijndaelGui:
 
     def start_AES(self, mode: str, text_input, out_file):
         extension = text_input.extension_options.get()
-        if len(extension) < 2 or (not extension[1:].isalnum()):
+        if len(extension) < 2 or (not extension[1:].isalnum()) or extension[0] != '.':
             text_input.message.config(text=f'Invalid extension ({extension})', foreground='red')
             return
         if not self.key_input.ready:
