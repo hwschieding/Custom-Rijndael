@@ -170,6 +170,8 @@ class RijndaelGui:
         if not os.path.exists(text_input.user_file):
             text_input.message.config(text='Invalid file selected', foreground='red')
             return
+        text_input.message.config(text="Working...", foreground='blue')
+        text_input.message.update()
         try:
             r = Rijndael(self.key_input.key)
             with open(text_input.user_file, 'rb') as f_in, open(out_file, 'wb') as f_out:
