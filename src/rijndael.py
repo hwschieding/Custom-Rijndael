@@ -7,6 +7,7 @@ from src.sbox import compute_forward_sbox, compute_inverse_sbox
 def array_to_states(text_bytes: bytearray, padding: bool=True) -> list[State]:
     mxs = []
     if padding:
+        print('Padding text...')
         # Padding text to 16 bytes
         padding = 16 - (len(text_bytes) % 16)
         text_bytes += (bytearray(padding.to_bytes(1)) * padding)
@@ -21,10 +22,9 @@ def states_to_array(mxs: list, remove_padding: bool=False) -> bytearray:
     for state in mxs:
         text_bytes += state.data
     if remove_padding:
-        print(f"Before padding {text_bytes}")
+        print('Removing padding...')
         padding = text_bytes[-1]
         text_bytes = text_bytes[:-padding]
-        print(f"After padding {text_bytes}")
     return text_bytes
 
 # Main Rijndael class
@@ -35,9 +35,9 @@ class Rijndael:
         self._SBOX_FORWARD = compute_forward_sbox() if sbox_f is None else sbox_f
         self._SBOX_INVERSE = compute_inverse_sbox() if sbox_i is None else sbox_i
 
-        self.key = key.decode(errors='replace') if isinstance(key, bytearray) else key
+        self.key = bytearray(key, 'utf-8') if isinstance(key, str) else key
 
-        self.round_keys = KeySchedule(key, self._SBOX_FORWARD)
+        self.round_keys = KeySchedule(self.key, self._SBOX_FORWARD)
 
     # Full AES encryption as described at https://en.wikipedia.org/wiki/Advanced_Encryption_Standard#High-level_description_of_the_algorithm
     def encrypt(self, plaintext: str | bytearray) -> bytearray:
@@ -85,9 +85,9 @@ class Rijndael:
             decrypted_states.append(state)
         return states_to_array(decrypted_states, remove_padding=True)
 
-    def change_key(self, new_key: str):
-        self.key = new_key
-        self.round_keys = KeySchedule(new_key, self._SBOX_FORWARD)
+    def change_key(self, new_key: bytearray | str):
+        self.key = bytearray(new_key, 'utf-8') if isinstance(new_key, str) else new_key
+        self.round_keys = KeySchedule(self.key, self._SBOX_FORWARD)
 
 if __name__ == '__main__':
     r = Rijndael(bytearray("0123456789abcdef", 'utf-8'))
