@@ -41,7 +41,7 @@ class ActionInput:
         self.encrypt_button.grid(row=0, column=0)
         self.extension_options.grid(row=0, column=1)
 
-        self.message = ttk.Label(self.main_frame, text="")
+        self.message = ttk.Label(self.main_frame, text="", wraplength=300)
 
         self.input_frame.grid(row=1,column=0, sticky=W)
         self.action_frame.grid(row=2, column=0)
@@ -160,29 +160,32 @@ class RijndaelGui:
         self.root.mainloop()
 
     def start_AES(self, mode: str, text_input, out_file):
+        status_message = text_input.message
         extension = text_input.extension_options.get()
         if len(extension) < 2 or (not extension[1:].isalnum()) or extension[0] != '.':
-            text_input.message.config(text=f'Invalid extension ({extension})', foreground='red')
+            status_message.config(text=f'Invalid extension ({extension})', foreground='red')
             return
         if not self.key_input.ready:
-            text_input.message.config(text='Invalid key', foreground='red')
+            status_message.config(text='Invalid key', foreground='red')
             return
         if not os.path.exists(text_input.user_file):
-            text_input.message.config(text='Invalid file selected', foreground='red')
+            status_message.config(text='Invalid file selected', foreground='red')
             return
-        text_input.message.config(text="Working...", foreground='blue')
-        text_input.message.update()
+        status_message.config(text="Working...", foreground='blue')
+        status_message.update()
         try:
             r = Rijndael(self.key_input.key)
             with open(text_input.user_file, 'rb') as f_in, open(out_file, 'wb') as f_out:
                 input_bytes = bytearray(f_in.read())
                 post_action_bytes = r.encrypt(input_bytes) if mode == 'e' else r.decrypt(input_bytes)
                 f_out.write(post_action_bytes)
-            text_input.message.config(text=f'{"Cipher" if mode == 'e' else "Plain"}text outputted to {out_file}',
+            status_message.config(text=f'{"Cipher" if mode == 'e' else "Plain"}text outputted to {out_file}',
                                       foreground='black'
                                       )
+        except FileNotFoundError as e:
+            status_message.config(text=f"Couldn't open file ({e})")
         except Exception as e:
-            text_input.message.config(text=f'Something went wrong ({e})', foreground='red')
+            status_message.config(text=f'Something went wrong ({e})', foreground='red')
 
 
 if __name__ == '__main__':
