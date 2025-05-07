@@ -40,9 +40,9 @@ class Rijndael:
         self.round_keys = KeySchedule(self.key, self._SBOX_FORWARD)
 
     # Full AES encryption as described at https://en.wikipedia.org/wiki/Advanced_Encryption_Standard#High-level_description_of_the_algorithm
-    def encrypt(self, plaintext: str | bytearray) -> bytearray:
+    def encrypt(self, plaintext: str | bytearray, add_padding=True) -> bytearray:
         print(f"Beginning encryption with plaintext '{plaintext}' and key '{self.key}'")
-        plaintext_states = array_to_states(bytearray(plaintext, 'utf-8') if isinstance(plaintext, str) else plaintext)
+        plaintext_states = array_to_states(bytearray(plaintext, 'utf-8') if isinstance(plaintext, str) else plaintext, padding=add_padding)
         encrypted_states = []
         # Operates on each 16 byte state "block" individually
         for plain_state in plaintext_states:
@@ -65,7 +65,7 @@ class Rijndael:
         return states_to_array(encrypted_states)
 
     # Full AES decryption; identical to encryption except reversed + using inverse methods
-    def decrypt(self, ciphertext: str | bytearray) -> bytearray:
+    def decrypt(self, ciphertext: str | bytearray, remove_padding=True) -> bytearray:
         print(f"Beginning decryption with ciphertext '{ciphertext}' and key '{self.key}'")
         encrypted_states = array_to_states(bytearray(ciphertext, 'utf-8') if isinstance(ciphertext, str) else ciphertext, padding=False)
         decrypted_states = []
@@ -83,7 +83,7 @@ class Rijndael:
                 print(f'[Decryption] Round {key_idx}: {state}')
             state ^= self.round_keys[0]
             decrypted_states.append(state)
-        return states_to_array(decrypted_states, remove_padding=True)
+        return states_to_array(decrypted_states, remove_padding=remove_padding)
 
     def change_key(self, new_key: bytearray | str):
         self.key = bytearray(new_key, 'utf-8') if isinstance(new_key, str) else new_key
