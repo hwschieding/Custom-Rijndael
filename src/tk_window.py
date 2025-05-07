@@ -6,10 +6,13 @@ import os
 from src.key_schedule import _KEY_ROUND_SIZES
 from src.rijndael import Rijndael
 
+# Default output directory
 OUT_DIR = os.path.dirname(__file__)
 ENCRYPT_OUT = os.path.join(OUT_DIR, 'encrypt_out')
 DECRYPT_OUT = os.path.join(OUT_DIR, 'decrypt_out')
+FILE_CHUNK_SIZE = 128 # Must be divisible by 16
 
+# Validates user inputted file extension
 def validate_extension(ext):
     if ext == '' or  ext[0] != '.':
         return False
@@ -20,6 +23,7 @@ def validate_extension(ext):
     else:
         return False
 
+# Panel for program action by user input (encrypting/decrypting)
 class ActionInput:
     def __init__(self, master, func, label_txt, button_txt):
         self.main_frame = ttk.Frame(master, padding=(10, 10, 10, 10))
@@ -27,6 +31,7 @@ class ActionInput:
         self.input_frame = ttk.Frame(self.main_frame, padding=(0, 0, 0, 15))
 
         self.user_file = ""
+        # Browse file button
         self.file_browse = ttk.Button(self.input_frame, text="Browse File", command=self.select_file)
         self.file_lbl = ttk.Label(self.input_frame, text=self._get_file_label())
         self.file_browse.grid(row=0, column=0, sticky=W)
@@ -34,6 +39,7 @@ class ActionInput:
 
         self.action_frame = ttk.Frame(self.main_frame)
         extension_validate_command = self.action_frame.register(validate_extension)
+        # Encrypt button & file extension input
         self.encrypt_button = ttk.Button(self.action_frame, text=button_txt, command=func)
         self.extension_options = ttk.Combobox(self.action_frame, values=(".txt", ".docx"), width=6, validate='key',
                                               validatecommand=(extension_validate_command, '%P'))
@@ -50,6 +56,7 @@ class ActionInput:
     def grid(self, row=0, column=0):
         self.main_frame.grid(row=row, column=column, sticky=W)
 
+    # Prompts user for file name and saves selection
     def select_file(self):
         self.user_file = filedialog.askopenfilename(filetypes=[('Text Files', '*.txt'), ('All Files', '*.*')])
         self.file_lbl.config(text=self._get_file_label())
@@ -57,6 +64,7 @@ class ActionInput:
     def _get_file_label(self) -> str:
         return "No file selected" if self.user_file == "" else os.path.basename(self.user_file)
 
+# Panel for user inputted encryption/decryption key
 class KeyInput:
     def __init__(self, master):
         self.main_frame = ttk.Frame(master, padding=(0, 10, 0, 10))
@@ -72,9 +80,11 @@ class KeyInput:
         self.user_entry = StringVar()
         self.user_entry.trace('w', lambda name, index, mode, ue=self.user_entry: self.validate_entry(ue))
 
+        # Decoding dropdown
         decoding_options = ("UTF-8", "HEX")
         self.dropdown = ttk.OptionMenu(self.input_frame, self.decoding, decoding_options[0], *decoding_options,
                                        command=lambda d: self.validate_entry(self.user_entry))
+        # Key text entry
         self.key_entry = ttk.Entry(self.input_frame, textvariable=self.user_entry, width=32)
         self.warning = ttk.Label(self.input_frame, text='', foreground='red')
 
@@ -90,9 +100,9 @@ class KeyInput:
     def grid(self, row=0, column=0):
         self.main_frame.grid(row=row, column=column, sticky=W)
 
+    # Validates user inputted key
     def validate_entry(self, ue):
-        # print('callback')
-        # print(self.decoding.get())
+        # Sets status message
         def status(s, message=''):
             self.warning.config(text=message)
             self.ready=s
@@ -108,11 +118,13 @@ class KeyInput:
                 return
 
         if len(us_bytes) in _KEY_ROUND_SIZES:
+            # Only when everything checks out, set key to user input
             status(True)
             self.key = us_bytes
         else:
             status(False, message=f'Invalid key length ({len(us_bytes)})')
 
+# Main GUI class. Starts window on init
 class RijndaelGui:
     def __init__(self):
         self.root = Tk()
@@ -122,10 +134,11 @@ class RijndaelGui:
         self.main_frame.grid(row=0, column=0)
         ttk.Label(self.main_frame, text="AES Encryption Algorithm").grid(row=0, column=0, sticky=W)
 
-
+        # Create key user input
         self.key_input = KeyInput(self.main_frame)
         self.key_input.grid(row=1, column=0)
 
+        # Notebook for encrypt/decrypt frames
         self.notebook = ttk.Notebook(self.main_frame)
 
         # Encrypt frame
@@ -159,9 +172,11 @@ class RijndaelGui:
         self.notebook.grid(row=2, column=0, sticky=W)
         self.root.mainloop()
 
+    # Runs AES algorithm with given user inputs
     def start_AES(self, mode: str, text_input, out_file):
         status_message = text_input.message
         extension = text_input.extension_options.get()
+        # Revalidate all user entries
         if len(extension) < 2 or (not extension[1:].isalnum()) or extension[0] != '.':
             status_message.config(text=f'Invalid extension ({extension})', foreground='red')
             return
@@ -173,17 +188,19 @@ class RijndaelGui:
             return
         status_message.config(text="Working...", foreground='blue')
         status_message.update()
+        # Start process
         try:
             r = Rijndael(self.key_input.key)
+            action = r.encrypt if mode == 'e' else r.decrypt
             with open(text_input.user_file, 'rb') as f_in, open(out_file, 'wb') as f_out:
-                input_bytes = bytearray(f_in.read())
-                post_action_bytes = r.encrypt(input_bytes) if mode == 'e' else r.decrypt(input_bytes)
-                f_out.write(post_action_bytes)
+                file_bytes = bytearray(f_in.read())
+                action_bytes = action(file_bytes)
+                f_out.write(action_bytes)
             status_message.config(text=f'{"Cipher" if mode == 'e' else "Plain"}text outputted to {out_file}',
                                       foreground='black'
                                       )
         except FileNotFoundError as e:
-            status_message.config(text=f"Couldn't open file ({e})")
+            status_message.config(text=f"Couldn't open file ({e})", foreground='red')
         except Exception as e:
             status_message.config(text=f'Something went wrong ({e})', foreground='red')
 
