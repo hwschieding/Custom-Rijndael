@@ -88,19 +88,3 @@ class Rijndael:
     def change_key(self, new_key: bytearray | str):
         self.key = bytearray(new_key, 'utf-8') if isinstance(new_key, str) else new_key
         self.round_keys = KeySchedule(self.key, self._SBOX_FORWARD)
-
-if __name__ == '__main__':
-    r = Rijndael(bytearray("0123456789abcdef", 'utf-8'))
-    b = bytearray('Test words to encrypt:)', 'utf-8')
-    e = r.encrypt(b)
-    print(e)
-    print(r.decrypt(e))
-
-    # sbox_f = compute_forward_sbox()
-    # sbox_i = compute_inverse_sbox()
-    # '\x00\x00\x01\x01\x03\x03\x07\x07\x0f\x0f\x1f\x1f\x3f\x3f\x7f\x7f'
-    # r = Rijndael('\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00', sbox_f, sbox_i)
-    # e_r = r.encrypt('sixteen bytes :)')
-    # print(e_r)
-    # print()
-    # print(r.decrypt(e_r))

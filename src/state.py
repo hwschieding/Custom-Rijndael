@@ -56,12 +56,3 @@ class State(ByteMatrix16):
             offset = 3 - idx
             new: bytearray = row[offset:] + row[:offset]
             self.set_row(idx + 1, new)
-
-if __name__ == '__main__':
-    s = State(bytearray('sixteen chars :)', 'utf-8'))
-    ByteMatrix16._debug_show_chars = True
-    print(s.str_long())
-    s.shift_rows()
-    print(s.str_long())
-    s.shift_rows_inv()
-    print(s.str_long())

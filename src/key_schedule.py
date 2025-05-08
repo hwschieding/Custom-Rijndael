@@ -113,7 +113,6 @@ class KeySchedule:
                     word = words[i - k_word_num] ^ self._sub_word(words[i - 1])
                 else:
                     word = words[i - k_word_num] ^ words[i - 1]
-                # print(f'iter {i}: {word=}, {hex(word)=}')
                 words.append(word)
                 round_words += _num32_to_array(word)
 

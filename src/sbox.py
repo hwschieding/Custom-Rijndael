@@ -1,7 +1,5 @@
 # Code for generating the Rijndael substitution box
 
-# TODO: Add option to use precomputed S-Box from file instead of generating one
-
 from src.galois_math import find_galois_inverse
 
 def l_rot8(a, bits) -> int:  # Circular shift left for bytes
