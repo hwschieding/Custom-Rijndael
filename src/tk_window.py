@@ -1,10 +1,10 @@
 from tkinter import Tk, W, StringVar
 from tkinter import ttk
 from tkinter import filedialog
-# from ctypes import windll
 import os
 from src.key_schedule import _KEY_ROUND_SIZES
 from src.rijndael import Rijndael
+from src.sbox import compute_forward_sbox, compute_inverse_sbox
 
 # Default output directory
 OUT_DIR = os.path.dirname(__file__)
@@ -126,10 +126,11 @@ class KeyInput:
 
 # Main GUI class. Starts window on init
 class RijndaelGui:
-    def __init__(self):
+    def __init__(self, sbox=None, i_sbox=None):
+        self.sbox = compute_forward_sbox() if sbox is None else sbox
+        self.i_sbox = compute_inverse_sbox() if i_sbox is None else i_sbox
         self.root = Tk()
         self.root.title("AES Implementation")
-        # windll.shcore.SetProcessDpiAwareness(1)
         self.main_frame = ttk.Frame(self.root, padding=(10, 10, 10, 10))
         self.main_frame.grid(row=0, column=0)
         ttk.Label(self.main_frame, text="AES Encryption Algorithm").grid(row=0, column=0, sticky=W)
@@ -190,7 +191,7 @@ class RijndaelGui:
         status_message.update()
         # Start process
         try:
-            r = Rijndael(self.key_input.key)
+            r = Rijndael(self.key_input.key, sbox_f=self.sbox, sbox_i=self.i_sbox)
             action = r.encrypt if mode == 'e' else r.decrypt
             with open(text_input.user_file, 'rb') as f_in, open(out_file, 'wb') as f_out:
                 file_bytes = bytearray(f_in.read())
@@ -203,8 +204,3 @@ class RijndaelGui:
             status_message.config(text=f"Couldn't open file ({e})", foreground='red')
         except Exception as e:
             status_message.config(text=f'Something went wrong ({e})', foreground='red')
-
-
-if __name__ == '__main__':
-    RijndaelGui()
-    # print(os.path.dirname(__file__))
